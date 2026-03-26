@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta Central Smoke × Tekton</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #080808;
+  --bg2: #0f0f0f;
+  --bg3: #161616;
+  --card: #111111;
+  --border: rgba(255,255,255,0.07);
+  --green: #22c55e;
+  --green-dark: #15803d;
+  --green-muted: rgba(34,197,94,0.12);
+  --gold: #f59e0b;
+  --gold-muted: rgba(245,158,11,0.12);
+  --red: #ef4444;
+  --red-muted: rgba(239,68,68,0.1);
+  --text: #f5f5f5;
+  --muted: #6b7280;
+  --muted2: #9ca3af;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,8,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-weight:700;font-size:15px;letter-spacing:0.05em;color:var(--green)}
+.nav-links{display:flex;gap:24px;font-size:13px;color:var(--muted)}
+.nav-links a:hover{color:var(--text);transition:color .2s}
+@media(max-width:640px){.nav-links{display:none}}
+
+/* TYPOGRAPHY */
+h1{font-size:clamp(2.5rem,6vw,5rem);font-weight:800;letter-spacing:-0.03em;line-height:1.05}
+h2{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2}
+h3{font-size:1.15rem;font-weight:600}
+.label{font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)}
+.section-tag{display:inline-flex;align-items:center;gap:8px;background:var(--green-muted);border:1px solid rgba(34,197,94,0.2);color:var(--green);padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px}
+.section-tag.gold{background:var(--gold-muted);border-color:rgba(245,158,11,0.2);color:var(--gold)}
+.section-tag.red{background:var(--red-muted);border-color:rgba(239,68,68,0.2);color:var(--red)}
+
+/* SECTIONS */
+section{padding:80px 24px;max-width:1100px;margin:0 auto}
+.section-inner{max-width:1100px;margin:0 auto}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-top:100px;padding-bottom:80px;position:relative;overflow:hidden;max-width:100%}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(21,128,61,0.18) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 80% 80%,rgba(245,158,11,0.06) 0%,transparent 60%);pointer-events:none}
+.hero-smoke{position:absolute;bottom:0;left:0;right:0;height:300px;background:linear-gradient(to top,rgba(8,8,8,1) 0%,transparent 100%);pointer-events:none;z-index:1}
+.hero-content{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:0 24px}
+.hero-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.hero-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.4)}50%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+.hero-eyebrow span{font-size:13px;color:var(--muted2);font-weight:500;letter-spacing:0.04em}
+.hero-title{margin-bottom:24px}
+.hero-title .accent{color:var(--green)}
+.hero-subtitle{font-size:clamp(1rem,2vw,1.25rem);color:var(--muted2);max-width:600px;margin-bottom:48px;line-height:1.7}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;max-width:700px}
+.hero-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.hero-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);opacity:0.5}
+.hero-stat .num{font-size:2rem;font-weight:800;color:var(--green);line-height:1;margin-bottom:4px}
+.hero-stat .desc{font-size:12px;color:var(--muted);line-height:1.4}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:100px;padding:10px 18px;margin-top:32px;font-size:13px;color:var(--gold);font-weight:500}
+
+/* CARDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}.grid-auto{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.card.green-border{border-color:rgba(34,197,94,0.3)}
+.card.gold-border{border-color:rgba(245,158,11,0.3)}
+.card.red-border{border-color:rgba(239,68,68,0.2)}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:40px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center}
+.stat-card .big{font-size:2.4rem;font-weight:800;line-height:1;margin-bottom:8px}
+.stat-card .big.green{color:var(--green)}
+.stat-card .big.gold{color:var(--gold)}
+.stat-card .big.red{color:var(--red)}
+.stat-card .label2{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* FUNNEL */
+.funnel{margin-top:40px;display:flex;flex-direction:column;gap:4px;max-width:600px;margin-left:auto;margin-right:auto}
+.funnel-row{display:flex;align-items:center;gap:16px}
+.funnel-bar-wrap{flex:1;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;height:52px;position:relative}
+.funnel-bar{height:100%;border-radius:8px;display:flex;align-items:center;padding:0 16px;font-weight:700;font-size:15px;transition:width 1.5s cubic-bezier(.16,1,.3,1)}
+.funnel-label{width:160px;font-size:13px;color:var(--muted2);text-align:right;flex-shrink:0}
+.funnel-pct{width:50px;font-size:12px;color:var(--muted);flex-shrink:0;text-align:left}
+.funnel-arrow{text-align:center;color:var(--border);font-size:20px;margin:0 auto;padding:2px 0;line-height:1}
+
+/* PROBLEMS */
+.problem-list{display:grid;gap:12px;margin-top:32px}
+.problem-item{display:flex;align-items:flex-start;gap:16px;background:var(--card);border:1px solid rgba(239,68,68,0.15);border-radius:var(--radius-sm);padding:20px}
+.problem-icon{width:40px;height:40px;background:var(--red-muted);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.problem-text h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.problem-text p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* SOLUTION MODULES */
+.module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:32px}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.module-card:hover{border-color:rgba(34,197,94,0.3);transform:translateY(-2px)}
+.module-card .module-num{font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.15em;margin-bottom:12px}
+.module-card h3{font-size:16px;margin-bottom:8px}
+.module-card p{font-size:13px;color:var(--muted);line-height:1.6}
+.module-card .module-tag{display:inline-flex;align-items:center;gap:6px;background:var(--green-muted);color:var(--green);border-radius:100px;font-size:11px;font-weight:600;padding:4px 10px;margin-top:12px}
+.module-card .module-icon{font-size:28px;margin-bottom:12px}
+
+/* COMPARISON TABLE */
+.compare-table{width:100%;border-collapse:collapse;margin-top:0}
+.compare-table th{padding:14px 20px;text-align:left;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+.compare-table th.highlight{color:var(--green)}
+.compare-table td{padding:14px 20px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:top}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table td:nth-child(2){color:var(--muted);font-size:13px}
+.compare-table td:nth-child(3){color:var(--text);font-weight:500}
+.check{color:var(--green);font-size:16px}
+.cross{color:var(--muted);font-size:16px}
+.compare-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:32px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* TIMELINE */
+.timeline{margin-top:40px;position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--green),var(--green-dark),transparent)}
+.timeline-item{position:relative;margin-bottom:28px}
+.timeline-item::before{content:'';position:absolute;left:-26px;top:6px;width:12px;height:12px;background:var(--green);border-radius:50%;box-shadow:0 0 0 3px rgba(34,197,94,0.2)}
+.timeline-item .day{font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px}
+.timeline-item h4{font-size:15px;font-weight:600;margin-bottom:4px}
+.timeline-item p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* INVESTMENT */
+.invest-placeholder{background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(245,158,11,0.06));border:2px dashed rgba(34,197,94,0.3);border-radius:var(--radius);padding:40px;text-align:center;margin:32px 0}
+.invest-placeholder .amount{font-size:3rem;font-weight:800;color:var(--green);margin-bottom:8px}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:24px}
+.market-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center}
+.market-item .mname{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+.market-item .mprice{font-size:1.2rem;font-weight:700;color:var(--muted2)}
+.market-item .mperiod{font-size:11px;color:var(--muted);margin-top:2px}
+.market-item.highlighted{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.05)}
+.market-item.highlighted .mprice{color:var(--green)}
+
+/* DOMAIN */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+.domain-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center}
+.domain-card .ext{font-size:2rem;font-weight:800;margin-bottom:8px}
+.domain-card .ext.mx{color:var(--green)}
+.domain-card .ext.com{color:var(--gold)}
+.domain-card .price{font-size:1.5rem;font-weight:700;margin:12px 0;color:var(--text)}
+.domain-card .note{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ROI */
+.roi-box{background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(34,197,94,0.04));border:1px solid rgba(34,197,94,0.25);border-radius:var(--radius);padding:32px;margin-top:32px;text-align:center}
+.roi-box .roi-num{font-size:3.5rem;font-weight:800;color:var(--green);line-height:1}
+.roi-box .roi-label{font-size:14px;color:var(--muted2);margin-top:8px}
+
+/* CTA */
+#cta{background:linear-gradient(135deg,#0a1a0f,#0a0a0a);border-top:1px solid var(--border);text-align:center;padding:80px 24px;max-width:100%}
+.cta-inner{max-width:600px;margin:0 auto}
+.cta-title{margin-bottom:16px}
+.cta-sub{color:var(--muted2);margin-bottom:40px;font-size:1.05rem}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:#000;font-weight:700;font-size:15px;padding:16px 32px;border-radius:12px;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{background:#16a34a;transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,0.3)}
+.tekton-footer{margin-top:60px;padding-top:32px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:16px}
+.tekton-logo{font-size:18px;font-weight:800;letter-spacing:0.05em;color:var(--green)}
+.tekton-sep{color:var(--border)}
+.tekton-sub{font-size:13px;color:var(--muted)}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:0}
+
+/* CHART CONTAINERS */
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-top:32px;position:relative}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--muted2)}
+.chart-subtitle{font-size:12px;color:var(--muted);margin-bottom:20px}
+
+/* HIGHLIGHT BOX */
+.highlight-box{background:var(--green-muted);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius);padding:24px;margin-top:20px}
+.highlight-box p{font-size:14px;line-height:1.7;color:var(--muted2)}
+.highlight-box strong{color:var(--text)}
+.highlight-box.gold{background:var(--gold-muted);border-color:rgba(245,158,11,0.2)}
+.highlight-box.gold p{color:var(--muted2)}
+
+/* SCROLL ANIMATIONS */
+.fade-in{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+
+/* MONEY CALC */
+.money-calc{margin-top:32px;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:12px}
+.money-calc .mc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.money-calc .mc-card .mc-num{font-size:1.6rem;font-weight:800;line-height:1;margin-bottom:4px}
+.money-calc .mc-card .mc-label{font-size:11px;color:var(--muted);line-height:1.4}
+.money-calc .mc-op{font-size:28px;color:var(--muted);font-weight:300;text-align:center;flex-shrink:0}
+
+/* TOP PRODUCTS */
+.product-bars{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+.pb-row{display:flex;align-items:center;gap:12px}
+.pb-name{width:200px;font-size:13px;color:var(--muted2);text-align:right;flex-shrink:0}
+.pb-track{flex:1;height:32px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;position:relative}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font-size:12px;font-weight:700;color:#fff;transition:width 1.5s cubic-bezier(.16,1,.3,1);min-width:40px}
+
+/* =========================================
+   REPARACIÓN DE RESPONSIVE (MÓVIL)
+   ========================================= */
+@media(max-width:768px){
+  .domain-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:640px){
+  section { padding: 40px 16px; }
+  .nav-brand { font-size: 13px; }
+  .hero-content { padding: 0 16px; }
+  .hero-title { font-size: 2.2rem; }
+  .hero-subtitle { font-size: 1rem; margin-bottom: 32px; }
+  .hero-eyebrow span { font-size: 11px; }
+  
+  /* Protección de Tabla Comparativa */
+  .compare-table { min-width: 600px; } /* Fuerza el scroll horizontal en lugar de aplastar el texto */
+  .compare-table th, .compare-table td { padding: 12px 14px; font-size: 12px; }
+  
+  /* Reparación de Cajas de Texto en Barras (Funnel) */
+  .funnel-label { width: 100px; font-size: 11px; }
+  .funnel-bar { min-width: 110px; font-size: 12px; white-space: nowrap; padding: 0 10px; } /* Evita que "166 órdenes" desaparezca en 1.67% */
+  
+  /* Reparación de Cajas de Texto en Top Productos */
+  .pb-name { width: 100px; font-size: 11px; line-height: 1.2; }
+  .pb-fill { min-width: 90px; font-size: 11px; white-space: nowrap; padding-right: 8px; }
+  
+  /* Respiración para Gráficas Canvas */
+  .chart-wrap { padding: 16px; }
+  .chart-title { font-size: 13px; line-height: 1.4; }
+  
+  /* Ajustes de Cuadros de Dinero / Inversión */
+  .money-calc{grid-template-columns:1fr}
+  .money-calc .mc-op{display:none}
+  .money-calc .mc-card { padding: 16px; }
+  .invest-placeholder { padding: 24px 16px; }
+  .invest-placeholder .amount { font-size: 2.2rem; }
+  .roi-box .roi-num { font-size: 2.2rem; }
+}
+
+@media(max-width:640px) {
+  #hero {
+    padding-top: 80px;
+    padding-bottom: 40px;
+    height: auto; /* Que el alto lo de el contenido, no la pantalla */
+    min-height: 100vh;
+  }
+
+  .hero-title {
+    font-size: 1.8rem !important; /* Forzamos un tamaño legible en móvil */
+    margin-bottom: 20px;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr 1fr; /* Forzamos 2 columnas exactas */
+    gap: 10px;
+  }
+
+  .hero-stat {
+    padding: 15px 10px; /* Tarjetas más compactas */
+  }
+
+  .hero-stat .num {
+    font-size: 1.5rem; /* Números más pequeños para que no se rompan */
+  }
+
+  .hero-badge {
+    padding: 8px 14px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><a target="_blank" href="https://uxurimx.github.io/tekton">TEKTON</a></div>
+  <div class="nav-links">
+    <a href="#diagnostico">Diagnóstico</a>
+    <a href="#solucion">Solución</a>
+    <a href="#independencia">Sistema Propio</a>
+    <a href="#inversion">Inversión</a>
+    <a href="#cta">Contacto</a>
+  </div>
+</nav>
+
+<div id="hero">
+  <div class="hero-bg"></div>wa.me
+  <div class="hero-smoke"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-dot"></div>
+      <span>Propuesta exclusiva · Preparado por Tekton · Marzo 2026</span>
+    </div>
+    <h1 class="hero-title">
+      Tu negocio tiene<br>
+      <span class="accent">más potencial</span><br>
+      del que muestra.
+    </h1>
+    <p class="hero-subtitle">
+      Analizamos tu operación actual, tus datos reales y encontramos oportunidades específicas para <strong>Central Smoke</strong>. Esto no es una propuesta genérica — es un diagnóstico hecho con tus números.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num" data-count="9918">0</div>
+        <div class="desc">personas visitaron tu menú digital</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num" data-count="166">0</div>
+        <div class="desc">órdenes capturadas por el sistema</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num" data-prefix="$" data-count="775">0</div>
+        <div class="desc">ticket promedio por orden</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num" data-count="1.67" data-suffix="%" data-decimal>0</div>
+        <div class="desc">de conversión actual (hay mucho margen)</div>
+      </div>
+    </div>
+    <div class="hero-badge">
+      ⚡ Con los cambios propuestos, la proyección conservadora es <strong>&nbsp;+$140,000 MXN/mes extra</strong>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<section id="diagnostico" class="fade-in">
+  <div class="section-tag">📊 Tu negocio hoy</div>
+  <h2>Así está <span style="color:var(--green)">Central Smoke</span> en este momento</h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:600px;font-size:1.05rem">
+    Estos son tus números reales, extraídos directamente de tu sistema. No estimaciones, no promedios del mercado — tus datos.
+  </p>
+
+  <div class="stat-grid">
+    <div class="stat-card fade-in">
+      <div class="big green" data-count="9918">0</div>
+      <div class="label2">Vistas al menú digital<br><span style="color:var(--green);font-size:11px">↑ Alto tráfico — la gente te está buscando</span></div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="big gold" data-count="784">0</div>
+      <div class="label2">Personas que abrieron el carrito<br><span style="color:var(--muted)">7.9% de los visitantes</span></div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="big green" data-count="627">0</div>
+      <div class="label2">Veces que se agregó algo al carrito<br><span style="color:var(--green);font-size:11px">↑ La intención de compra es alta</span></div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="big red" data-count="166">0</div>
+      <div class="label2">Órdenes que llegaron al sistema<br><span style="color:var(--red);font-size:11px">↓ La mayoría se va por WhatsApp manual</span></div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="big gold" data-prefix="$" data-count="35680">0</div>
+      <div class="label2">Revenue registrado en el sistema<br><span style="color:var(--muted)">El real es 3-5x más (screenshots)</span></div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="big green" data-count="32">0</div>
+      <div class="label2">Clientes únicos identificados<br><span style="color:var(--muted)">Sin perfiles ni historial guardado</span></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap fade-in" style="margin-top:40px">
+    <div class="chart-title">Embudo de conversión — Dónde se pierde la venta</div>
+    <div class="chart-subtitle">De cada 100 personas que visitan tu menú, solo 1.67 concretan un pedido en el sistema</div>
+    <div class="funnel">
+      <div class="funnel-row">
+        <div class="funnel-label">Visitan el menú</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0%;background:linear-gradient(90deg,#15803d,#22c55e);color:#fff" data-w="100">9,918 personas</div></div>
+        <div class="funnel-pct">100%</div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-row">
+        <div class="funnel-label">Abren el carrito</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0%;background:linear-gradient(90deg,#166534,#16a34a);color:#fff" data-w="7.9">784 personas</div></div>
+        <div class="funnel-pct">7.9%</div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-row">
+        <div class="funnel-label">Agregan productos</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0%;background:linear-gradient(90deg,#854d0e,#ca8a04);color:#fff" data-w="6.3">627 personas</div></div>
+        <div class="funnel-pct">6.3%</div>
+      </div>
+      <div class="funnel-arrow">↓</div>
+      <div class="funnel-row">
+        <div class="funnel-label">Completan la orden</div>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0%;background:linear-gradient(90deg,#991b1b,#ef4444);color:#fff" data-w="1.67">166 órdenes</div></div>
+        <div class="funnel-pct">1.67%</div>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:20px">
+      <p>🔍 <strong>¿Qué pasa con las otras 9,752 personas?</strong> La mayoría toma un screenshot del producto y lo manda por WhatsApp directamente — sin pasar por el sistema. Eso significa que <strong>esas ventas no se registran, no se analizan y no construyen historial de cliente.</strong> Es dinero que existe pero que tu negocio no puede ver ni gestionar.</p>
+    </div>
+  </div>
+
+  <div class="chart-wrap fade-in" style="margin-top:24px">
+    <div class="chart-title">Tus días de mayor venta</div>
+    <div class="chart-subtitle">Viernes y sábado concentran el 56% de tus órdenes — saberlo te ayuda a prepararte mejor</div>
+    <div style="position: relative; width: 100%; height: 160px;">
+      <canvas id="daysChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-wrap fade-in" style="margin-top:24px">
+    <div class="chart-title">Top 5 productos más deseados</div>
+    <div class="chart-subtitle">Los productos que más veces tu cliente agregó al carrito</div>
+    <div class="product-bars">
+      <div class="pb-row">
+        <div class="pb-name">PLUMA 1GR</div>
+        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="100">104</div></div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-name">HASH HOLES WAZABI</div>
+        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="76.9">80</div></div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-name">GOMITAS HH</div>
+        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="39.4">41</div></div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-name">MUHA MEDS 3.5GR</div>
+        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="28.8">30</div></div>
+      </div>
+      <div class="pb-row">
+        <div class="pb-name">FLOR EXÓTICA 3.5GR</div>
+        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="27.9">29</div></div>
+      </div>
+    </div>
+    <div class="highlight-box gold" style="margin-top:20px">
+      <p>💡 <strong>Pluma 1GR es tu producto estrella</strong> con 104 interacciones — más del doble que el segundo lugar. Con inventario en tiempo real, nunca tendrías que decirle "no hay" a un cliente. Actualmente, ningún producto tiene control de inventario activo.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="problemas" class="fade-in">
+  <div class="section-tag red">⚠️ Situación actual</div>
+  <h2>Los 6 problemas que <span style="color:var(--red)">frenan tu crecimiento</span></h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:600px;font-size:1.05rem">
+    No son opiniones — son hallazgos directos de analizar tu operación.
+  </p>
+
+  <div class="problem-list">
+    <div class="problem-item fade-in">
+      <div class="problem-icon">📋</div>
+      <div class="problem-text">
+        <h4>Todas tus órdenes dicen "pendiente" — para siempre</h4>
+        <p>Revisamos tus últimas 46 órdenes registradas: el 100% tiene estatus "pendiente". Ninguna se ha marcado como entregada, preparando o completada. Tus clientes no saben si su pedido llegó, y tú no tienes historial de lo que realmente pasó con cada venta.</p>
+      </div>
+    </div>
+    <div class="problem-item fade-in">
+      <div class="problem-icon">📦</div>
+      <div class="problem-text">
+        <h4>Cero control de inventario — vendes a ciegas</h4>
+        <p>Tienes 65 productos en el sistema, 45 activos. Ninguno tiene control de stock activado. Si se acaba un producto, el cliente lo puede seguir ordenando — y tú te enteras cuando ya le dijiste que sí. Eso cuesta clientes y reputación.</p>
+      </div>
+    </div>
+    <div class="problem-item fade-in">
+      <div class="problem-icon">📸</div>
+      <div class="problem-text">
+        <h4>Tus clientes prefieren el screenshot al carrito</h4>
+        <p>9,918 visitas, 166 órdenes. La mayoría toma foto a la pantalla y manda el pedido por WhatsApp directo — eso significa que más del 98% de tu tráfico no deja rastro en el sistema. Cada venta así es una oportunidad perdida de construir historial de cliente.</p>
+      </div>
+    </div>
+    <div class="problem-item fade-in">
+      <div class="problem-icon">🚴</div>
+      <div class="problem-text">
+        <h4>Sin control de repartidores — el arqueo es manual y tardado</h4>
+        <p>Cada día le das mercancía a tus repartidores y al final del día hacen cuentas a mano. No sabes en tiempo real cuánto han vendido, dónde están o si la mercancía cuadra. Este proceso toma horas que podrían usarse en hacer crecer el negocio.</p>
+      </div>
+    </div>
+    <div class="problem-item fade-in">
+      <div class="problem-icon">🏗️</div>
+      <div class="problem-text">
+        <h4>Tu sistema fue diseñado para restaurantes, no para tu negocio</h4>
+        <p>El sistema actual tiene funciones de "maridaje de vinos", "mesa compartida" y otras herramientas pensadas para cafeterías y restaurantes de lujo. Central Smoke necesita búsqueda por efecto, control de cepas, microdosis e información de productos de cannabis — no existe nada de eso hoy.</p>
+      </div>
+    </div>
+    <div class="problem-item fade-in">
+      <div class="problem-icon">🔓</div>
+      <div class="problem-text">
+        <h4>Tu negocio vive en una plataforma compartida con otras empresas</h4>
+        <p>Actualmente tu menú, tus productos, tus precios y los datos de tus clientes están en la misma infraestructura que otros negocios. Tu información no está separada ni protegida de forma exclusiva. Detallamos esto más adelante.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px">
+    <div class="section-tag gold">💰 Oportunidad real</div>
+    <h3 style="font-size:1.5rem;margin-bottom:16px">¿Cuánto vale mejorar la conversión del 1.67% al 3.5%?</h3>
+    <p style="color:var(--muted2);font-size:14px;margin-bottom:24px">Un aumento moderado, completamente alcanzable con el flujo correcto:</p>
+    <div class="money-calc">
+      <div class="mc-card">
+        <div class="mc-num" style="color:var(--muted2)">9,918</div>
+        <div class="mc-label">visitas mensuales<br>actuales</div>
+      </div>
+      <div class="mc-op">×</div>
+      <div class="mc-card">
+        <div class="mc-num" style="color:var(--green)">3.5%</div>
+        <div class="mc-label">nueva tasa de<br>conversión</div>
+      </div>
+      <div class="mc-op">=</div>
+      <div class="mc-card" style="border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.06)">
+        <div class="mc-num" style="color:var(--green)">347</div>
+        <div class="mc-label">órdenes al mes<br>(vs. 166 actuales)</div>
+      </div>
+    </div>
+    <div class="roi-box fade-in" style="margin-top:16px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Incremento mensual proyectado (181 órdenes extra × $775 promedio)</div>
+      <div class="roi-num">+$140,275 <span style="font-size:1.8rem">MXN/mes</span></div>
+      <div class="roi-label">Solo mejorando el flujo del carrito y el seguimiento de órdenes · Sin gastar más en publicidad</div>
+    </div>
+    <div class="chart-wrap fade-in">
+      <div class="chart-title">Proyección de ingresos — Sistema actual vs. sistema mejorado</div>
+      <div class="chart-subtitle">Estimación conservadora a 12 meses basada en tus métricas reales</div>
+      <div style="position: relative; width: 100%; height: 160px;">
+        <canvas id="projectionChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="solucion" class="fade-in">
+  <div class="section-tag">⚡ La solución</div>
+  <h2>Lo que vamos a <span style="color:var(--green)">construir para ti</span></h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:620px;font-size:1.05rem">
+    Seis módulos diseñados específicamente para Central Smoke. Cada uno resuelve un problema concreto y genera un beneficio medible.
+  </p>
+
+  <div class="module-grid">
+    <div class="module-card fade-in">
+      <div class="module-icon">🚴</div>
+      <div class="module-num">MÓDULO 01</div>
+      <h3>Control de Repartidores</h3>
+      <p>Abre el turno de cada repartidor desde tu teléfono, asígnale mercancía y ve en tiempo real cuánto ha vendido. Al final del día, el arqueo se genera solo: cuánto vendió, cuánto trae en efectivo y si hay diferencias. Sin Excel, sin cuentas manuales.</p>
+      <div class="module-tag">✓ Ahorra 1-2 horas diarias</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">📦</div>
+      <div class="module-num">MÓDULO 02</div>
+      <h3>Inventario en Tiempo Real</h3>
+      <p>Cada venta descuenta automáticamente el stock. Cuando un producto se acaba, desaparece solo del menú del cliente — sin que tú hagas nada. Tú ves en cualquier momento cuánto queda de cada producto, desde tu celular.</p>
+      <div class="module-tag">✓ Cero ventas sin existencia</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">⚡</div>
+      <div class="module-num">MÓDULO 03</div>
+      <h3>Menú Express para el Cliente</h3>
+      <p>Una versión simplificada del menú donde el cliente ve el producto, el precio, y con UN solo toque manda el pedido por WhatsApp con todos los detalles. Elimina la fricción del carrito actual y captura a los que hoy toman screenshots.</p>
+      <div class="module-tag">✓ Duplica la conversión</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">🌿</div>
+      <div class="module-num">MÓDULO 04</div>
+      <h3>Búsqueda por Estado de Ánimo</h3>
+      <p>Tus clientes no siempre saben qué producto quieren, pero sí saben cómo quieren sentirse: relajado, con energía, con enfoque, para dormir. Con este módulo seleccionan su estado y el sistema les recomienda el producto ideal. Ideal para clientes nuevos.</p>
+      <div class="module-tag">✓ Reduce el abandono por confusión</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">👤</div>
+      <div class="module-num">MÓDULO 05</div>
+      <h3>Perfil y Fidelización de Clientes</h3>
+      <p>Tus clientes se registran con su cuenta de Google o Apple (1 toque, sin formularios). Desde ahí tienen su historial de pedidos, estatus en tiempo real y puntos de lealtad. En su cumpleaños reciben un detalle automático.</p>
+      <div class="module-tag">✓ Clientes que regresan más</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">🏪</div>
+      <div class="module-num">MÓDULO 06</div>
+      <h3>Modo Kiosko para tu Local</h3>
+      <p>Para el espacio físico que estás abriendo: una pantalla táctil donde el cliente se atiende solo. Elige su producto, paga con QR o en caja, y recibe su número de pedido. Pensado para tableta, sin complicaciones, con pantalla grande y botones claros.</p>
+      <div class="module-tag">✓ Atiende a más clientes sin más personal</div>
+    </div>
+  </div>
+
+  <div class="highlight-box fade-in" style="margin-top:24px">
+    <p>📌 <strong>Estos módulos se constru বহুম integrados:</strong> una venta del repartidor descuenta el inventario, actualiza los puntos del cliente, notifica al dueño en tiempo real y queda registrada en el historial. Todo conectado, todo automático.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="independencia" class="fade-in">
+  <div class="section-tag gold">🔒 Tu sistema propio</div>
+  <h2>La diferencia entre un <span style="color:var(--gold)">local rentado</span><br>y tu <span style="color:var(--green)">propio edificio</span></h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:640px;font-size:1.05rem">
+    Actualmente tu negocio digital vive en una plataforma compartida junto con restaurantes, cafeterías y otros negocios. Es como rentar un local en una plaza comercial donde todos comparten la misma bodega, el mismo sistema de luz y el mismo administrador. Lo que proponemos es diferente.
+  </p>
+
+  <div class="compare-wrap fade-in">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Aspecto</th>
+          <th>Plataforma compartida (hoy)</th>
+          <th class="highlight">✦ Tu sistema propio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Dominio</strong></td>
+          <td>central-smoke.yumm.lat<br><span style="color:var(--muted);font-size:12px">Depende de otra marca</span></td>
+          <td><span class="check">✓</span>- centralsmoke.mx<br><span style="color:var(--green);font-size:12px">Tu marca, tu identidad</span></td>
+        </tr>
+        <tr>
+          <td><strong>Base de datos</strong></td>
+          <td><span class="cross">—</span> Compartida con otros negocios<br><span style="color:var(--muted);font-size:12px">Tus datos junto a demos y pruebas</span></td>
+          <td><span class="check">✓</span> Solo tuya, completamente privada<br><span style="color:var(--green);font-size:12px">Nadie más tiene acceso</span></td>
+        </tr>
+        <tr>
+          <td><strong>Privacidad</strong></td>
+          <td><span class="cross">—</span> Tus precios y productos visibles en la plataforma</td>
+          <td><span class="check">✓</span> Información 100% privada y cifrada</td>
+        </tr>
+        <tr>
+          <td><strong>Funciones disponibles</strong></td>
+          <td><span class="cross">—</span> Genéricas para restaurantes<br><span style="color:var(--muted);font-size:12px">Maridajes, mesas, funciones que no usas</span></td>
+          <td><span class="check">✓</span> Diseñadas para tu tipo de negocio<br><span style="color:var(--green);font-size:12px">Mood search, cepas, inventario cannabis</span></td>
+        </tr>
+        <tr>
+          <td><strong>Velocidad</strong></td>
+          <td><span class="cross">—</span> Recursos compartidos<br><span style="color:var(--muted);font-size:12px">Si otro negocio tiene tráfico alto, te afecta</span></td>
+          <td><span class="check">✓</span> Recursos dedicados solo para Central Smoke</td>
+        </tr>
+        <tr>
+          <td><strong>Dependencia</strong></td>
+          <td><span class="cross">—</span> Si la plataforma cambia precios o cierra, tú paras</td>
+          <td><span class="check">✓</span> Tu sistema funciona independientemente</td>
+        </tr>
+        <tr>
+          <td><strong>Datos de clientes</strong></td>
+          <td><span class="cross">—</span> Sin perfiles, sin historial real</td>
+          <td><span class="check">✓</span> Base de clientes propia, con historial completo</td>
+        </tr>
+        <tr>
+          <td><strong>Personalización</strong></td>
+          <td><span class="cross">—</span> Limitada a lo que permite la plataforma</td>
+          <td><span class="check">✓</span> Total — se construye para lo que tú necesitas</td>
+        </tr>
+        <tr>
+          <td><strong>Imagen de marca</strong></td>
+          <td><span class="cross">—</span> Comparte la marca de Yumm/MenuQR</td>
+          <td><span class="check">✓</span> 100% Central Smoke, sin marcas de terceros</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2 fade-in" style="margin-top:24px">
+    <div class="card green-border">
+      <div style="font-size:28px;margin-bottom:12px">🏠</div>
+      <h3 style="margin-bottom:8px">Piénsalo así</h3>
+      <p style="color:var(--muted2);font-size:14px;line-height:1.7">Hoy tu negocio digital vive en un departamento rentado de una plaza comercial. Funciona, pero comparte paredes con todos los vecinos, el dueño del edificio pone las reglas y tú no puedes modificar nada sin su permiso. <strong style="color:var(--text)">Tener tu propio sistema es comprar tu local propio.</strong> Tu espacio, tus reglas, tu imagen, tu futuro.</p>
+    </div>
+    <div class="card gold-border">
+      <div style="font-size:28px;margin-bottom:12px">📈</div>
+      <h3 style="margin-bottom:8px">El valor a largo plazo</h3>
+      <p style="color:var(--muted2);font-size:14px;line-height:1.7">Cada cliente que compra en tu sistema propio queda registrado en <strong style="color:var(--text)">tu base de datos</strong>. Ese activo crece con el tiempo: historial de compras, preferencias, frecuencia, valor por cliente. Es el tipo de información que, en 1 año de operación, vale más que cualquier herramienta de marketing que puedas comprar.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="dominio" class="fade-in">
+  <div class="section-tag">🌐 Tu dominio propio</div>
+  <h2>centralsmoke<span style="color:var(--green)">.mx</span> o centralsmoke<span style="color:var(--gold)">.com</span></h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:600px;font-size:1.05rem">
+    El dominio es tu dirección en internet. En vez de "centralsmoke.yumm.lat", tus clientes escriben directamente tu nombre. El dominio se compra una vez al año — nosotros lo conectamos al sistema sin costo adicional.
+  </p>
+
+  <div class="domain-grid fade-in">
+    <div class="domain-card">
+      <div class="ext mx">.mx</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Dominio mexicano · Recomendado</div>
+      <div class="price">$900 – $1,200 MXN</div>
+      <div style="font-size:11px;color:var(--green);margin-bottom:8px">/ año</div>
+      <div class="note">Ideal para negocio local en México. Transmite arraigo, confianza local. Renovación anual de bajo costo.</div>
+    </div>
+    <div class="domain-card" style="border-color:rgba(245,158,11,0.3)">
+      <div class="ext com">.com</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Dominio internacional</div>
+      <div class="price" style="color:var(--gold)">~$3,000 MXN</div>
+      <div style="font-size:11px;color:var(--gold);margin-bottom:8px">/ año (varía por disponibilidad)</div>
+      <div class="note">Mayor reconocimiento internacional. Recomendado si planeas expandirte fuera de México o proyectar imagen global.</div>
+    </div>
+  </div>
+
+  <div class="highlight-box fade-in" style="margin-top:20px">
+    <p>💡 <strong>Tambien puedes comprar el dominio a tu nombre</strong> (en NIC México, GoDaddy o donde prefieras) y nosotros lo conectamos al sistema. El dominio siempre es tuyo — si algún día cambias de proveedor, te lo llevas. No hay dependencia.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="inversion" class="fade-in">
+  <div class="section-tag gold">💼 La inversión</div>
+  <h2>Lo que otros cobran <span style="color:var(--muted)">vs.</span> lo que obtienes aquí</h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:600px;font-size:1.05rem">
+    Para dimensionar esta propuesta, comparamos con alternativas reales del mercado.
+  </p>
+
+  <div class="market-grid fade-in">
+    <div class="market-item">
+      <div class="mname">Shopify (Básico)</div>
+      <div class="mprice">$500 MXN</div>
+      <div class="mperiod">/ mes · solo tienda online</div>
+    </div>
+    <div class="market-item">
+      <div class="mname">Toast POS</div>
+      <div class="mprice">$1,400 MXN</div>
+      <div class="mperiod">/ mes · sin personalización</div>
+    </div>
+    <div class="market-item">
+      <div class="mname">Wix eCommerce</div>
+      <div class="mprice">$400 MXN</div>
+      <div class="mperiod">/ mes · genérico, sin POS</div>
+    </div>
+    <div class="market-item">
+      <div class="mname">Desarrollo custom CDMX</div>
+      <div class="mprice">$50,000+</div>
+      <div class="mperiod">MXN · proyecto base sin soporte</div>
+    </div>
+    <div class="market-item highlighted">
+      <div class="mname">Central Smoke · Tekton</div>
+      <div class="mprice">[INVERSIÓN]</div>
+      <div class="mperiod">Sistema completo + dominio + soporte</div>
+    </div>
+  </div>
+
+  <div class="invest-placeholder fade-in">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;letter-spacing:0.1em;text-transform:uppercase">Inversión total del proyecto</div>
+    <div class="amount">[A DEFINIR]</div>
+    <div style="font-size:14px;color:var(--muted2);margin-bottom:20px">Incluye desarrollo, configuración, migración de datos y 1 mes de soporte</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:13px;color:var(--muted2)">
+      <span>✓ Sistema independiente y privado</span>
+      <span>✓ Los 6 módulos completos</span>
+      <span>✓ Dominio propio conectado</span>
+      <span>✓ Migración de tu catálogo actual</span>
+      <span>✓ Capacitación de tu equipo</span>
+      <span>✓ 1 mes de soporte incluido</span>
+    </div>
+  </div>
+
+  <div class="highlight-box gold fade-in" style="margin-top:20px">
+    <p>📊 <strong>¿Cuándo se paga sola la inversión?</strong> Si el nuevo sistema captura 20 órdenes extras al mes que hoy se van por screenshot (un número muy conservador dados tus 9,918 visitas), eso representa <strong>+$15,500 MXN adicionales al mes.</strong> La inversión se recupera en el primer o segundo mes de operación.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="timeline" class="fade-in">
+  <div class="section-tag">🗓️ El plan</div>
+  <h2>Listo en <span style="color:var(--green)">1 semana</span></h2>
+  <p style="color:var(--muted2);margin-top:12px;max-width:600px;font-size:1.05rem">
+    Una vez que damos el arranque, este es el proceso. Sin sorpresas, sin retrasos.
+  </p>
+
+  <div class="grid-2 fade-in" style="margin-top:40px;align-items:start">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="day">Fase 1</div>
+        <h4>Arranque y configuración base</h4>
+        <p>Creamos tu instancia independiente, configuramos la base de datos exclusiva, conectamos tu dominio y migramos todo tu catálogo actual de productos sin perder nada.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="day">Fase 2</div>
+        <h4>Módulos operativos</h4>
+        <p>Control de repartidores con POS móvil, inventario en tiempo real con auto-desactivación, sistema de arqueo automático y panel de turnos para el dueño.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="day">Fase 3</div>
+        <h4>Experiencia del cliente</h4>
+        <p>Menú Express, búsqueda por estado de ánimo, perfil de cliente con Google/Apple, sistema de puntos y notificaciones en tiempo real del estatus de la orden.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="day">Fase 4</div>
+        <h4>Pruebas y ajustes</h4>
+        <p>Probamos todo el flujo completo: desde que el cliente ve el menú hasta que el repartidor cierra su turno. Ajustamos lo que sea necesario.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="day">Fase 5</div>
+        <h4>Lanzamiento y capacitación</h4>
+        <p>El sistema entra en vivo con tu dominio propio. Capacitamos a ti y a tu equipo. El kiosko para el local físico se configura en cuanto el espacio esté listo.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card green-border">
+        <h3 style="margin-bottom:12px;font-size:15px">Lo que Tekton entrega</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted2)">
+          <div>✓ Sistema 100% funcional y probado</div>
+          <div>✓ Dominio conectado y certificado SSL</div>
+          <div>✓ Catálogo migrado con todos tus productos</div>
+          <div>✓ Manual de uso para ti y tu equipo</div>
+          <div>✓ Video de capacitación grabado</div>
+          <div>✓ 1 mes de soporte por WhatsApp</div>
+          <div>✓ Acceso al código (tú eres dueño del sistema)</div>
+        </div>
+      </div>
+      <div class="card gold-border">
+        <h3 style="margin-bottom:12px;font-size:15px">Lo que necesitamos de ti</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted2)">
+          <div>→ Aprobación de esta propuesta</div>
+          <div>→ Comprar el dominio (te guiamos)</div>
+          <div>→ 2 horas para la capacitación</div>
+          <div>→ Fotos de tus productos (si las tienes)</div>
+          <div>→ Datos de tus repartidores</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<div id="cta">
+  <div class="cta-inner fade-in">
+    <div class="section-tag" style="margin:0 auto 24px;width:fit-content">🚀 Siguiente paso</div>
+    <h2 class="cta-title">¿Listo para que Central Smoke<br><span style="color:var(--green)">opere en su máximo potencial?</span></h2>
+    <p class="cta-sub">Tienes el producto, tienes los clientes, tienes el tráfico. Lo que falta es el sistema que los conecte correctamente.</p>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <a href="https://wa.me/526613386653?text=Hola%2C%20quiero%20hablar%20sobre%20la%20propuesta%20de%20Central%20Smoke" class="btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg>
+        Hablar con Tekton — Arrancamos esta semana
+      </a>
+      <p style="font-size:12px;color:var(--muted)">Respuesta en menos de 24 horas · Sin contratos complicados</p>
+    </div>
+
+    <div style="margin-top:48px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:left">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600">Resumen ejecutivo</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+        <div style="color:var(--muted2)">📊 Conversión actual</div><div style="color:var(--text);font-weight:600">1.67% → potencial 3.5%</div>
+        <div style="color:var(--muted2)">💰 Incremento proyectado</div><div style="color:var(--green);font-weight:600">+$140,000 MXN/mes</div>
+        <div style="color:var(--muted2)">📅 Tiempo de entrega</div><div style="color:var(--text);font-weight:600">7 días hábiles</div>
+        <div style="color:var(--muted2)">🔒 Sistema</div><div style="color:var(--text);font-weight:600">Independiente y privado</div>
+        <div style="color:var(--muted2)">🌐 Dominio .mx</div><div style="color:var(--text);font-weight:600">$900–$1,200 MXN/año</div>
+        <div style="color:var(--muted2)">🏗️ Módulos incluidos</div><div style="color:var(--text);font-weight:600">6 módulos completos</div>
+      </div>
+    </div>
+
+    <div class="tekton-footer">
+      <div class="tekton-logo">
+        <a target="_blank" href="https://uxurimx.github.io/tekton">TEKTON</a>
+      </div>
+      <div class="tekton-sep">·</div>
+      <div class="tekton-sub">Sistemas digitales para negocios reales · Durango, México</div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:16px">Propuesta preparada con datos reales de Central Smoke · Marzo 2026 · Confidencial</p>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// COUNTER ANIMATION
+// ============================================================
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.count);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const isDecimal = el.hasAttribute('data-decimal');
+  const duration = 1800;
+  const start = performance.now();
+
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = target * ease;
+    const display = isDecimal ? current.toFixed(2) : Math.floor(current).toLocaleString('es-MX');
+    el.textContent = prefix + display + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// ============================================================
+// INTERSECTION OBSERVER — fade in + trigger counters + bars
+// ============================================================
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('visible');
+
+    // Counters
+    entry.target.querySelectorAll('[data-count]').forEach(el => {
+      if (!el.dataset.animated) {
+        el.dataset.animated = '1';
+        animateCounter(el);
+      }
+    });
+
+    // Funnel bars
+    entry.target.querySelectorAll('.funnel-bar[data-w]').forEach(el => {
+      setTimeout(() => { el.style.width = el.dataset.w + '%'; }, 200);
+    });
+
+    // Product bars
+    entry.target.querySelectorAll('.pb-fill[data-w]').forEach(el => {
+      setTimeout(() => { el.style.width = el.dataset.w + '%'; }, 300);
+    });
+
+    observer.unobserve(entry.target);
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Hero counter auto-start
+setTimeout(() => {
+  document.querySelectorAll('.hero-stat [data-count]').forEach(el => {
+    if (!el.dataset.animated) {
+      el.dataset.animated = '1';
+      animateCounter(el);
+    }
+  });
+  // Hero funnel bars if visible
+  document.querySelectorAll('.funnel-bar[data-w]').forEach(el => {
+    el.style.width = el.dataset.w + '%';
+  });
+}, 600);
+
+// ============================================================
+// CHART: DÍAS DE LA SEMANA
+// ============================================================
+const daysCtx = document.getElementById('daysChart').getContext('2d');
+new Chart(daysCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+    datasets: [
+      {
+        label: 'Órdenes',
+        data: [3, 2, 4, 7, 4, 13, 13],
+        backgroundColor: (ctx) => {
+          const i = ctx.dataIndex;
+          return (i === 5 || i === 6) ? 'rgba(34,197,94,0.85)' : 'rgba(34,197,94,0.25)';
+        },
+        borderColor: 'transparent',
+        borderRadius: 8,
+        yAxisID: 'y',
+      },
+      {
+        label: 'Revenue ($)',
+        data: [3050, 1950, 5250, 5600, 1500, 9550, 8780],
+        type: 'line',
+        borderColor: 'rgba(245,158,11,0.8)',
+        backgroundColor: 'rgba(245,158,11,0.08)',
+        pointBackgroundColor: 'rgba(245,158,11,1)',
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: { color: '#9ca3af', font: { size: 12 }, boxWidth: 12 }
+      },
+      tooltip: {
+        backgroundColor: '#1a1a1a',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#f5f5f5',
+        bodyColor: '#9ca3af',
+        callbacks: {
+          label: (ctx) => ctx.dataset.yAxisID === 'y2'
+            ? ` $${ctx.raw.toLocaleString('es-MX')}`
+            : ` ${ctx.raw} órdenes`
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { ticks: { color: '#6b7280', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Órdenes', color: '#6b7280', font: { size: 11 } } },
+      y2: { position: 'right', ticks: { color: '#ca8a04', callback: v => '$' + v.toLocaleString('es-MX') }, grid: { display: false }, title: { display: true, text: 'Revenue MXN', color: '#ca8a04', font: { size: 11 } } }
+    }
+  }
+});
+
+// ============================================================
+// CHART: PROYECCIÓN
+// ============================================================
+const months = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6','Mes 7','Mes 8','Mes 9','Mes 10','Mes 11','Mes 12'];
+const currentRevenue  = [128650,128650,128650,128650,128650,128650,128650,128650,128650,128650,128650,128650];
+const projectedRevenue = [148000,165000,182000,200000,215000,228000,240000,252000,262000,271000,278000,285000];
+
+const projCtx = document.getElementById('projectionChart').getContext('2d');
+new Chart(projCtx, {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Sistema actual',
+        data: currentRevenue,
+        borderColor: 'rgba(107,114,128,0.6)',
+        backgroundColor: 'rgba(107,114,128,0.05)',
+        borderDash: [6, 4],
+        pointRadius: 0,
+        tension: 0.1,
+        fill: true,
+      },
+      {
+        label: 'Con sistema propio',
+        data: projectedRevenue,
+        borderColor: 'rgba(34,197,94,0.9)',
+        backgroundColor: 'rgba(34,197,94,0.08)',
+        pointBackgroundColor: 'rgba(34,197,94,1)',
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        labels: { color: '#9ca3af', font: { size: 12 }, boxWidth: 12 }
+      },
+      tooltip: {
+        backgroundColor: '#1a1a1a',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#f5f5f5',
+        bodyColor: '#9ca3af',
+        callbacks: {
+          label: (ctx) => ` $${ctx.raw.toLocaleString('es-MX')} MXN`
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#6b7280', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: {
+        ticks: {
+          color: '#6b7280',
+          font: { size: 11 },
+          callback: v => '$' + (v/1000).toFixed(0) + 'k'
+        },
+        grid: { color: 'rgba(255,255,255,0.04)' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
